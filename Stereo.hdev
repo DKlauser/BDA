@@ -15,10 +15,9 @@
 <c>* </c>
 <l>dev_close_window ()</l>
 <l>dev_update_off ()</l>
-<l>ImagePath := 'C:/Users/Daniel Klauser/OneDrive/Dokumente/8 Semester/Bachelor Arbeit/Programm/Scheiben_home_iiwa/'</l>
-<l>*ImagePathC:= 'C:/Users/Daniel Klauser/Desktop/Scheiben_home_10'</l>
-<l>ImagePrefix := 'scheibe_'</l>
-<l>read_image (Image, 'C:/Users/Daniel Klauser/OneDrive/Dokumente/8 Semester/Bachelor Arbeit/Programm/Scheiben_home_iiwa/scheibe_0.png')</l>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/scheiben_16.2/'</l>
+<l>ImagePrefix := 'scheiben_'</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/scheiben_16.2/scheiben_0.png')</l>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
@@ -43,8 +42,10 @@
 <l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.0)</l>
 <c></c>
 <c>* -&gt; Define camera pairs and bounding box.</c>
+<c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
 <l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
-<l>set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
+<l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
+<c>*Schauen das dass Objekt in der box ist!!!</c>
 <l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.03])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
@@ -54,7 +55,7 @@
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
-<l>read_object_model_3d ('BDA_Lischer_2.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>read_object_model_3d ('Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>create_surface_model (ObjectCADModel3D, 0.01, [], [], PipeJointSMID)</l>
 <c>* </c>
 <c>* *****</c>
@@ -233,36 +234,7 @@
 </oc>
 </interface>
 <body>
-<c>* </c>
-<c>* Define the internal and external camera parameters</c>
-<l>* CamParam0 := [0.00850373,4008.61,-2.95892e+008,2.37315e+013,0.139749,-0.00367983,5.99965e-006,6e-006,362.715,236.769,752,480]</l>
-<l>* CamParam1 := [0.00854019,3445.26,-1.18075e+008,6.40715e+012,-0.0527818,-0.192439,5.99894e-006,6e-006,406.13,254.15,752,480]</l>
-<l>* CamParam2 := [0.00852569,3938.44,-2.75967e+008,2.27295e+013,0.231091,0.193667,6.00001e-006,6e-006,367.159,242.477,752,480]</l>
-<l>* CamParam3 := [0.00853794,3793.19,-3.49193e+008,3.9611e+013,0.0264028,0.147156,6.00169e-006,6e-006,397.066,224.671,752,480]</l>
-<c>* </c>
-<l>* Pose0 := [0.0496073,0.0280127,-0.431281,3.5466,354.117,179.758,0]</l>
-<l>* Pose1 := [0.0495484,-0.0297644,-0.429654,355.333,354.014,359.147,0]</l>
-<l>* Pose2 := [-0.0411315,-0.0294687,-0.427325,355.519,4.45356,359.876,0]</l>
-<l>* Pose3 := [-0.0414501,0.0288074,-0.429167,2.94179,4.59538,179.173,0]</l>
 <c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c>*IIWA auf 45 cm mit winkel 10°</c>
-<c>*0</c>
-<l>* CamParam0:= [0.00773331,1635.84,-1.14728e+008,6.28377e+012,0.374646,-0.0221808,2.19058e-006,2.2e-006,1258.46,986.36,2560,1920]</l>
-<l>* Pose0 := [0.0133878,-0.0123234,-0.475275,6.24346,5.99036,358.636,0]</l>
-<c>*1</c>
-<l>* CamParam1 := [0.0075598,1558.22,-9.65061e+007,5.28054e+012,0.406553,0.148962,2.19087e-006,2.2e-006,1282.88,972.712,2560,1920]</l>
-<l>* Pose1 := [0.0100763,-0.0109718,-0.465767,353.794,5.94434,359.893,0]</l>
-<c>*2</c>
-<l>* CamParam2 := [0.00772714,1425.36,-6.85897e+007,3.48905e+012,0.205745,0.139494,2.19085e-006,2.2e-006,1300.88,942.815,2560,1920]</l>
-<l>* Pose2 := [0.00688544,-0.0067534,-0.477912,353.344,353.501,358.533,0]</l>
-<c>*3</c>
-<l>* CamParam3 := [0.00761183,1524.93,-9.31844e+007,5.14651e+012,0.132659,-0.126585,2.19078e-006,2.2e-006,1288.05,967.991,2560,1920]</l>
-<l>* Pose3 := [0.0084914,-0.00924695,-0.469512,5.95224,353.397,359.942,0]</l>
 <c>*IIWA AUF 45Cm ohne Winkel</c>
 <c>* Z Trans zuerst auf .- setzten.</c>
 <c>*Cam/Pose1</c>
@@ -300,6 +272,54 @@
 <l>set_camera_setup_cam_param (CameraSetupModelID, 2, 'area_scan_division', CamParam2, Pose2)</l>
 <l>set_camera_setup_cam_param (CameraSetupModelID, 3, 'area_scan_division', CamParam3, Pose3)</l>
 <l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c>**Trys</c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Define the internal and external camera parameters</c>
+<l>* CamParam0 := [0.00850373,4008.61,-2.95892e+008,2.37315e+013,0.139749,-0.00367983,5.99965e-006,6e-006,362.715,236.769,752,480]</l>
+<l>* CamParam1 := [0.00854019,3445.26,-1.18075e+008,6.40715e+012,-0.0527818,-0.192439,5.99894e-006,6e-006,406.13,254.15,752,480]</l>
+<l>* CamParam2 := [0.00852569,3938.44,-2.75967e+008,2.27295e+013,0.231091,0.193667,6.00001e-006,6e-006,367.159,242.477,752,480]</l>
+<l>* CamParam3 := [0.00853794,3793.19,-3.49193e+008,3.9611e+013,0.0264028,0.147156,6.00169e-006,6e-006,397.066,224.671,752,480]</l>
+<c>* </c>
+<l>* Pose0 := [0.0496073,0.0280127,-0.431281,3.5466,354.117,179.758,0]</l>
+<l>* Pose1 := [0.0495484,-0.0297644,-0.429654,355.333,354.014,359.147,0]</l>
+<l>* Pose2 := [-0.0411315,-0.0294687,-0.427325,355.519,4.45356,359.876,0]</l>
+<l>* Pose3 := [-0.0414501,0.0288074,-0.429167,2.94179,4.59538,179.173,0]</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>*IIWA auf 45 cm mit winkel 10°</c>
+<c>*0</c>
+<l>* CamParam0:= [0.00773331,1635.84,-1.14728e+008,6.28377e+012,0.374646,-0.0221808,2.19058e-006,2.2e-006,1258.46,986.36,2560,1920]</l>
+<l>* Pose0 := [0.0133878,-0.0123234,-0.475275,6.24346,5.99036,358.636,0]</l>
+<c>*1</c>
+<l>* CamParam1 := [0.0075598,1558.22,-9.65061e+007,5.28054e+012,0.406553,0.148962,2.19087e-006,2.2e-006,1282.88,972.712,2560,1920]</l>
+<l>* Pose1 := [0.0100763,-0.0109718,-0.465767,353.794,5.94434,359.893,0]</l>
+<c>*2</c>
+<l>* CamParam2 := [0.00772714,1425.36,-6.85897e+007,3.48905e+012,0.205745,0.139494,2.19085e-006,2.2e-006,1300.88,942.815,2560,1920]</l>
+<l>* Pose2 := [0.00688544,-0.0067534,-0.477912,353.344,353.501,358.533,0]</l>
+<c>*3</c>
+<l>* CamParam3 := [0.00761183,1524.93,-9.31844e+007,5.14651e+012,0.132659,-0.126585,2.19078e-006,2.2e-006,1288.05,967.991,2560,1920]</l>
+<l>* Pose3 := [0.0084914,-0.00924695,-0.469512,5.95224,353.397,359.942,0]</l>
+<c></c>
+<c></c>
 </body>
 <docu id="init_camera_setup">
 <parameters>
