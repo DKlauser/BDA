@@ -52,6 +52,7 @@
 <c>* -&gt; Binocular disparity parameters.</c>
 <l>set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
+<l>set_stereo_model_param(StereoModelID,'point_meshing','poisson')</l>
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
