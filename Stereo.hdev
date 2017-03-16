@@ -15,9 +15,9 @@
 <c>* </c>
 <l>dev_close_window ()</l>
 <l>dev_update_off ()</l>
-<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/scheiben_16.2/'</l>
-<l>ImagePrefix := 'scheiben_'</l>
-<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/scheiben_16.2/scheiben_0.png')</l>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/Block/'</l>
+<l>ImagePrefix := 'scheibe_'</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_47cm/Block/scheibe_0.png')</l>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
@@ -46,7 +46,7 @@
 <l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.03])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.1])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
