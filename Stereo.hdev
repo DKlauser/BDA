@@ -39,8 +39,7 @@
 <l>clear_camera_setup_model (CameraSetupModelID)</l>
 <c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
 <l>set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
-<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.0)</l>
-<c></c>
+<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.2)</l>
 <c>* -&gt; Define camera pairs and bounding box.</c>
 <c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
 <l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
@@ -48,15 +47,18 @@
 <c>*Schauen das dass Objekt in der box ist!!!</c>
 <l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.03])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
-<l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
+<l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 3)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
+<c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
+<l>*set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.3)</l>
+<c>*Bis jetzt bestes Resultat</c>
 <l>set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
 <l>read_object_model_3d ('Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
-<l>create_surface_model (ObjectCADModel3D, 0.01, [], [], PipeJointSMID)</l>
+<l>create_surface_model (ObjectCADModel3D, 0.01, [], [], ScheibeSMID)</l>
 <c>* </c>
 <c>* *****</c>
 <c>* Part 3: Reconstruct the surface of the pile of pipe fittings</c>
@@ -100,7 +102,7 @@
 <l>    Message[1] := 'Search best parts with surface based matching...'</l>
 <l>    disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
 <l>    count_seconds (T2)</l>
-<l>    find_surface_model (PipeJointSMID,ObjectCADModel3D, 0.03, 0.05, MinScore, 'false', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    find_surface_model (ScheibeSMID,ObjectCADModel3D, 0.03, 0.05, MinScore, 'false', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
 <l>    count_seconds (T3)</l>
 <l>    MatchingDiff := T3 - T2</l>
 <c>    * </c>
@@ -145,7 +147,7 @@
 <c>* </c>
 <c>* Clear the stereo model and the surface model.</c>
 <l>clear_stereo_model (StereoModelID)</l>
-<l>clear_surface_model (PipeJointSMID)</l>
+<l>clear_surface_model (ScheibeSMID)</l>
 <l>clear_object_model_3d (ObjectCADModel3D)</l>
 </body>
 <docu id="main">
