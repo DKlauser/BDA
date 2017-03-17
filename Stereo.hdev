@@ -39,6 +39,9 @@
 <l>clear_camera_setup_model (CameraSetupModelID)</l>
 <c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
 <l>set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
+<c></c>
+<c></c>
+<l>gen_caltab (7, 7, 0.0125, 0.5, 'caltab.descr', 'caltab.ps')</l>
 <l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.0)</l>
 <c></c>
 <c>* -&gt; Define camera pairs and bounding box.</c>
@@ -46,17 +49,17 @@
 <l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.1])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.12])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
 <l>set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
-<l>set_stereo_model_param(StereoModelID,'point_meshing','poisson')</l>
+<l>*set_stereo_model_param(StereoModelID,'point_meshing','poisson')</l>
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
-<l>read_object_model_3d ('Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>read_object_model_3d ('Block_gross_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>create_surface_model (ObjectCADModel3D, 0.01, [], [], PipeJointSMID)</l>
 <c>* </c>
 <c>* *****</c>
@@ -65,7 +68,7 @@
 <c>*         surface-based 3D matching.</c>
 <c>* *****</c>
 <l>NumMatches := 1</l>
-<l>MinScore := .05</l>
+<l>MinScore := .005</l>
 <l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation']</l>
 <l>Values := [NumMatches,0.02,'mls']</l>
 <l>Instructions[0] := 'Rotate: Left button'</l>
