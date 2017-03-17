@@ -57,7 +57,7 @@
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
-<l>read_object_model_3d ('Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>create_surface_model (ObjectCADModel3D, 0.01, [], [], ScheibeSMID)</l>
 <c>* </c>
 <c>* *****</c>
