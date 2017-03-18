@@ -39,7 +39,7 @@
 <l>clear_camera_setup_model (CameraSetupModelID)</l>
 <c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
 <l>set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
-<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.2)</l>
+<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.0)</l>
 <c>* -&gt; Define camera pairs and bounding box.</c>
 <c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
 <l>set_stereo_model_image_pairs (StereoModelID, [0,1,2,2], [1,2,3,1])</l>
@@ -51,15 +51,16 @@
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
 <c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
-<l>*set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.7)</l>
-<c>*Bis jetzt bestes Resultat</c>
-<l>set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
+<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.5)</l>
+<c>*Bis jetzt bestes Resultat Thresh = 0.7</c>
+<l>*set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
 <c>* *****</c>
 <c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
 <c>* *****</c>
 <l>read_object_model_3d ('PLYOBJEKTE/Block_klein_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>create_surface_model (ObjectCADModel3D, 0.01, [], [], ScheibeSMID)</l>
+<c>*Erstellt ein Sample Model aus dem 3D model!</c>
 <l>sample_object_model_3d(ObjectCADModel3D, 'fast', 0.05, [], [], SampledObjectModel3D)</l>
 <c></c>
 <c></c>
@@ -73,8 +74,8 @@
 <c>*         and detect the position of up to MaxNumParts by using</c>
 <c>*         surface-based 3D matching.</c>
 <c>* *****</c>
-<l>NumMatches := 5</l>
-<l>MinScore := .05</l>
+<l>NumMatches := 3</l>
+<l>MinScore := .1</l>
 <l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation']</l>
 <l>Values := [NumMatches,0.02,'mls']</l>
 <l>Instructions[0] := 'Rotate: Left button'</l>
@@ -95,22 +96,25 @@
 <l>    Message := 'Images for reconstruction'</l>
 <l>    disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
 <l>    count_seconds (T0)</l>
-<c>    **FEHLER HIER</c>
-<l>    reconstruct_surface_stereo (Images, StereoModelID, ObjectCADModel3D)</l>
+<c>    *Reconstructed Model wird zurückgegeben.</c>
+<l>    reconstruct_surface_stereo (Images, StereoModelID, ReconstructedModel3D)</l>
 <c>    **</c>
 <l>    count_seconds (T1)</l>
 <l>    ReconsTime := T1 - T0</l>
 <c>    * </c>
 <l>    PoseIn := [0.0,0.0,0.5,-30,0,180,0]</l>
 <l>    if (Index == 1)</l>
-<l>        visualize_object_model_3d (WindowHandle1, ObjectCADModel3D, CamParam0, PoseIn, ['color','point_size'], ['yellow',1], 'Reconstructed scene in ' + ReconsTime$'.3' + ' s', [], Instructions, PoseOut)</l>
+<l>        visualize_object_model_3d (WindowHandle1, ReconstructedModel3D, CamParam0, PoseIn, ['color','point_size'], ['yellow',1], 'Reconstructed scene in ' + ReconsTime$'.3' + ' s', [], Instructions, PoseOut)</l>
+<l>        *disp_3d_coord_system (WindowHandle1,CamParam0,PoseIn, 0.03)</l>
 <l>    endif</l>
 <c>    * </c>
 <c>    * Perform surface-based 3D matching.</c>
 <l>    Message[1] := 'Search best parts with surface based matching...'</l>
 <l>    disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
 <l>    count_seconds (T2)</l>
-<l>    find_surface_model (ScheibeSMID,ObjectCADModel3D, 0.03, 0.05, MinScore, 'false', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<c>    *RELSAMPLINGDISTANCE : OBJECT MODEL WIRD ABGETASTET</c>
+<c>    *KeyPointFraction : Gibt Schlüsselpunkte an.. sollte ca 10% sein.</c>
+<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.001, 0.05, MinScore, 'false', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
 <l>    count_seconds (T3)</l>
 <l>    MatchingDiff := T3 - T2</l>
 <c>    * </c>
