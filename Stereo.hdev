@@ -15,9 +15,9 @@
 <c>* </c>
 <l>dev_close_window ()</l>
 <l>dev_update_off ()</l>
-<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/kleinBlockLicht_2/'</l>
-<l>ImagePrefix := 'block_'</l>
-<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/kleinBlockLicht_2/block_0.png')</l>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/'</l>
+<l>ImagePrefix := 'scheiben_'</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/scheiben_0.png')</l>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
@@ -44,16 +44,16 @@
 <l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 1.2)</l>
 <c>* -&gt; Define camera pairs and bounding box.</c>
 <c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
-<l>set_stereo_model_image_pairs (StereoModelID, [0,0,2], [1,2,3])</l>
+<l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID,[1,1,2,2],[0,3,1,2])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.04])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.015])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
 <c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
-<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.4)</l>
+<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.55)</l>
 <c>*Bis jetzt bestes Resultat Thresh = 0.7</c>
 <l>*set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
@@ -62,14 +62,14 @@
 <c>* *****</c>
 <c></c>
 <c></c>
-<l>file_exists ('Block.om3', FileExists)</l>
+<l>file_exists ('Scheibe.om3', FileExists)</l>
 <l>if (FileExists)</l>
-<l>    read_object_model_3d('Block.om3','mm',[], [], ObjectCADModel3D, Status)</l>
+<l>    read_object_model_3d('Scheibe.om3','mm',[], [], ObjectCADModel3D, Status)</l>
 <l>else</l>
-<l>    read_object_model_3d ('PLYOBJEKTE/Block_mittel_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
-<l>    write_object_model_3d(ObjectCADModel3D, 'om3', 'Block', [], [])    </l>
+<l>    read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>    write_object_model_3d(ObjectCADModel3D, 'om3', 'Scheibe', [], [])    </l>
 <l>endif</l>
-<l>create_surface_model (ObjectCADModel3D, 0.01, [], [], ScheibeSMID)</l>
+<l>create_surface_model (ObjectCADModel3D, 0.03, [], [], ScheibeSMID)</l>
 <c>*Erstellt ein Sample Model aus dem 3D model!</c>
 <l>*sample_object_model_3d(ObjectCADModel3D, 'fast', 0.001, [], [], SampledObjectModel3D)</l>
 <c></c>
@@ -84,8 +84,8 @@
 <c>*         and detect the position of up to MaxNumParts by using</c>
 <c>*         surface-based 3D matching.</c>
 <c>* *****</c>
-<l>NumMatches := 3</l>
-<l>MinScore := .05</l>
+<l>NumMatches := 2</l>
+<l>MinScore := 0.15</l>
 <l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation']</l>
 <l>Values := [NumMatches,0.02,'mls']</l>
 <l>Instructions[0] := 'Rotate: Left button'</l>
@@ -124,7 +124,18 @@
 <l>    count_seconds (T2)</l>
 <c>    *RELSAMPLINGDISTANCE : OBJECT MODEL WIRD ABGETASTET</c>
 <c>    *KeyPointFraction : Gibt Schlüsselpunkte an.. sollte ca 10% sein.</c>
-<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.01, 0.05, MinScore, 'false', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.05, 0.3, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    get_surface_matching_result (SurfaceMatchingResultID, 'sampled_scene', [], SampledScene)</l>
+<l>    get_surface_matching_result (SurfaceMatchingResultID, 'key_points', [], KeyPoints)</l>
+<c>    </c>
+<c>    *Öffnet Fenster mit Schlüsselpunkten usw.</c>
+<c>'</c>
+<l>    dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle3)</l>
+<l>    set_display_font (WindowHandle3, 16, 'mono', 'true', 'false')</l>
+<l>    Message := 'Original scene points (white)'</l>
+<l>    Message[1] := 'Sampled scene points (cyan)'</l>
+<l>    Message[2] := 'Schlüsselpunkte (Gelb)'</l>
+<l>    visualize_object_model_3d (WindowHandle3, [ReconstructedModel3D,SampledScene,KeyPoints], [], [], ['color_' + [0,1,2],'point_size_' + [0,1,2]], ['gray','cyan','yellow',1.0,3.0,5.0], Message, [], Instructions, PoseOut)</l>
 <l>    count_seconds (T3)</l>
 <l>    MatchingDiff := T3 - T2</l>
 <c>    * </c>
@@ -142,23 +153,39 @@
 <c>        * Display the coordinate system of the part.</c>
 <l>        dev_set_colored (3)</l>
 <l>        dev_set_line_width (3)</l>
-<l>        disp_3d_coord_system (WindowHandle1, CamParam0, ObjPoseInCam0, 0.03)</l>
+<l>        disp_3d_coord_system (WindowHandle1, CamParam0, ObjPoseInCam0, 0.03)  </l>
+<c></c>
 <c>        * Display the faces of the part.</c>
+<c>        *3D Transformationen auf 3D Objektmodelle</c>
 <l>        rigid_trans_object_model_3d (ObjectCADModel3D, PoseObjInWorld, ObjectModel3DRigidTrans)</l>
+<c>        *ObjectModel3DRigidTrans übergibt hier Koordinaten aus der Welt und mit dieser Funktion werden sie in die Kamerakoordinaten gegeben.</c>
 <l>        project_object_model_3d (ModelContours, ObjectModel3DRigidTrans, CamParam0, WorldPose0, ['data','hidden_surface_removal'], ['faces','true'])</l>
 <l>        dev_set_line_width (2)</l>
 <l>        dev_set_color ('green')</l>
 <l>        dev_display (ModelContours)</l>
-<c>        * </c>
+<l>        dev_inspect_ctrl (WorldPose0)</l>
 <l>        clear_object_model_3d (ObjectModel3DRigidTrans)</l>
 <l>    endfor</l>
 <l>    set_system ('flush_graphic', 'true')</l>
 <c>    * </c>
+<c></c>
 <l>    Message := 'Reconstruction: ' + ReconsTime$'.2f' + ' s'</l>
 <l>    Message[1] := 'Gefunden : ' + |Scores| + ' Objects in ' + MatchingDiff$'.2f' + ' s'</l>
-<l>    *Message[2] := WorldPose0[0] + ' X'</l>
-<l>    *Message[3] := WorldPose0[1] + ' Y'</l>
-<l>    *Message[4] := WorldPose0[2] + ' Z'</l>
+<l>    *dev_open_window (0, 0, Width, Height, 'black', WindowHandle3)</l>
+<c>     *Positionsausgabe</c>
+<c>    </c>
+<l>    dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle4)</l>
+<l>    set_display_font (WindowHandle4, 16, 'mono', 'true', 'false')</l>
+<l>    disp_3d_coord_system (WindowHandle4, CamParam0,PoseObjInWorld , 0.01)</l>
+<l>    disp_message (WindowHandle, 'Converting the pose into robot coordinates', 'window', -1, -1, 'black', 'true')</l>
+<l>    dev_inspect_ctrl (WorldPose0)</l>
+<l>    *dev_inspect_ctrl(PoseObjInWorld)</l>
+<c>    * This pose should then be sent to the robot</c>
+<l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
+<c></c>
+<c></c>
+<c>    </c>
+<c></c>
 <l>    disp_message (WindowHandle1, Message, 'window', 12, 12, 'black', 'true')</l>
 <l>    disp_message (WindowHandle1, 'Camera 0', 'window', Height - 36, 12, 'white', 'false')</l>
 <l>    if (Index &lt; NumImages)</l>
