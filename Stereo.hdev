@@ -14,6 +14,10 @@
 <c>* Initializations:</c>
 <c>* *****</c>
 <c>* </c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
 <l>dev_close_window ()</l>
 <l>dev_update_off ()</l>
 <c>* Scheiben alt vor 27.3</c>
@@ -27,14 +31,14 @@
 <l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_schwer/scheiben_0.bmp')</l>
 <c></c>
 <c>*Blöcke</c>
-<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/kleinBlockLicht/'</l>
+<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/block_b/'</l>
 <l>* ImagePrefix := 'block_'</l>
-<l>*read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/kleinBlockLicht/block_0.png')</l>
+<l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/block_b/block_0.bmp')</l>
 <c></c>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
 <c></c>
-<c>*Nur zum Bearbeiten.</c>
+<c>*Nur zum Bearbeiten.ma</c>
 <l>*dev_display(Image)</l>
 <c></c>
 <l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
@@ -72,12 +76,12 @@
 <l>*set_stereo_model_image_pairs (StereoModelID,[1,1,2,2],[0,3,1,2])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.015])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.007])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
 <c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
-<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.4)</l>
+<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.5)</l>
 <c>*Bis jetzt bestes Resultat Thresh = 0.7</c>
 <l>*set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
@@ -88,19 +92,20 @@
 <c></c>
 <l>file_exists ('Block.om3', FileExists)</l>
 <l>if (FileExists)</l>
-<l>    read_object_model_3d('Block.om3','mm',[], [], ObjectCADModel3D, Status)</l>
+<l>    read_object_model_3d('Block.om3','m',[], [], ObjectCADModel3D, Status)</l>
 <l>else</l>
 <c>    *Scheibe</c>
-<l>    read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>    read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, Status)</l>
 <c>     *Block mittel</c>
 <l>    *read_object_model_3d ('PLYOBJEKTE/Block_klein_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>    write_object_model_3d(ObjectCADModel3D, 'om3', 'Block', [], [])    </l>
 <l>endif</l>
-<l>create_surface_model (ObjectCADModel3D, 0.03, [], [], ScheibeSMID)</l>
+<l>create_surface_model (ObjectCADModel3D, 0.05, ['model_invert_normals','feat_angle_resolution'], ['true',20], ScheibeSMID)</l>
 <c>*Erstellt ein Sample Model aus dem 3D model!</c>
+<c></c>
 <l>*sample_object_model_3d(ObjectCADModel3D, 'fast', 0.001, [], [], SampledObjectModel3D)</l>
-<c></c>
-<c></c>
+<l> *disp_object_model_3d (WindowHandle, ScheibeSMID, CamParam0, Pose0, 'colored', 12)</l>
+<l>  *disp_object_model_3d (WindowHandle1, ScheibeSMID, CamParam0, Pose0, 'colored', 12)</l>
 <l>PoseIn := [0.0,0.0,0.5,-30,0,180,0]</l>
 <l>ReconsTime := 30</l>
 <l>*visualize_object_model_3d (WindowHandle1, SampledObjectCADModel3D, CamParam0, PoseIn, ['color','point_size'], ['yellow',1], 'Reconstructed scene in ' + ReconsTime$'.3' + ' s', [], Instructions, PoseOut)</l>
@@ -119,7 +124,7 @@
 <c>*0.15</c>
 <l>MinScore := 0.2</l>
 <l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation','max_overlap_dist_rel','sparse_pose_refinement','pose_ref_use_scene_normals']</l>
-<l>Values := [NumMatches,0.2,'mls',0.9,'false','false']</l>
+<l>Values := [NumMatches,0.2,'mls',0.6,'false','false']</l>
 <l>Instructions[0] := 'Rotate: Left button'</l>
 <l>Instructions[1] := 'Zoom:   Shift + left button'</l>
 <l>Instructions[2] := 'Move:   Ctrl  + left button'</l>
@@ -156,7 +161,7 @@
 <l>    count_seconds (T2)</l>
 <c>    *RELSAMPLINGDISTANCE : OBJECT MODEL WIRD ABGETASTET</c>
 <c>    *KeyPointFraction : Gibt Schlüsselpunkte an.. sollte ca 10% sein.</c>
-<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.01, 0.4, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.05, 0.5, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
 <l>    get_surface_matching_result (SurfaceMatchingResultID, 'sampled_scene', [], SampledScene)</l>
 <l>    get_surface_matching_result (SurfaceMatchingResultID, 'key_points', [], KeyPoints)</l>
 <c>    </c>
