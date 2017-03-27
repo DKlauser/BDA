@@ -16,10 +16,15 @@
 <c>* </c>
 <l>dev_close_window ()</l>
 <l>dev_update_off ()</l>
-<c>* Scheiben</c>
-<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/'</l>
+<c>* Scheiben alt vor 27.3</c>
+<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/'</l>
+<l>* ImagePrefix := 'scheiben_'</l>
+<l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/scheiben_0.png')</l>
+<c></c>
+<c>* Scheiben neu nach 27.3</c>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_schwer/'</l>
 <l>ImagePrefix := 'scheiben_'</l>
-<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/scheiben_0.png')</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_schwer/scheiben_0.bmp')</l>
 <c></c>
 <c>*Blöcke</c>
 <l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/kleinBlockLicht/'</l>
@@ -29,8 +34,8 @@
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
 <c></c>
-<c></c>
-<l>dev_display(Image)</l>
+<c>*Nur zum Bearbeiten.</c>
+<l>*dev_display(Image)</l>
 <c></c>
 <l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
@@ -60,19 +65,19 @@
 <c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
 <l>set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
 <c>*0.4 </c>
-<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 0.4)</l>
+<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 0.8)</l>
 <c>* -&gt; Define camera pairs and bounding box.</c>
 <c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
 <l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID,[1,1,2,2],[0,3,1,2])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.01])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.015])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'sub_sampling_step', 2)</l>
 <c>* -&gt; Binocular disparity parameters.</c>
 <c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
-<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.8)</l>
+<l>set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.4)</l>
 <c>*Bis jetzt bestes Resultat Thresh = 0.7</c>
 <l>*set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
 <c>* </c>
@@ -106,11 +111,15 @@
 <c>*         and detect the position of up to MaxNumParts by using</c>
 <c>*         surface-based 3D matching.</c>
 <c>* *****</c>
-<l>NumMatches := 6</l>
+<c></c>
+<c>*'sparse_pose_refinement' verfeinert die Posen : true/false</c>
+<c>*'dense_pose_refinement' erhöht die exakten Posen : true/false</c>
+<c>*'pose_ref_sub_sampling':durch Iteration(Parameter) wird die Iteration erhöht</c>
+<l>NumMatches := 5</l>
 <c>*0.15</c>
-<l>MinScore := 0.15</l>
+<l>MinScore := 0.2</l>
 <l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation','max_overlap_dist_rel','sparse_pose_refinement','pose_ref_use_scene_normals']</l>
-<l>Values := [NumMatches,0.2,'mls',0.9,'true','false']</l>
+<l>Values := [NumMatches,0.2,'mls',0.9,'false','false']</l>
 <l>Instructions[0] := 'Rotate: Left button'</l>
 <l>Instructions[1] := 'Zoom:   Shift + left button'</l>
 <l>Instructions[2] := 'Move:   Ctrl  + left button'</l>
@@ -147,7 +156,7 @@
 <l>    count_seconds (T2)</l>
 <c>    *RELSAMPLINGDISTANCE : OBJECT MODEL WIRD ABGETASTET</c>
 <c>    *KeyPointFraction : Gibt Schlüsselpunkte an.. sollte ca 10% sein.</c>
-<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.05, 0.4, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.01, 0.4, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
 <l>    get_surface_matching_result (SurfaceMatchingResultID, 'sampled_scene', [], SampledScene)</l>
 <l>    get_surface_matching_result (SurfaceMatchingResultID, 'key_points', [], KeyPoints)</l>
 <c>    </c>
@@ -177,11 +186,8 @@
 <l>        dev_set_colored (3)</l>
 <l>        dev_set_line_width (3)</l>
 <c>        * Exportieren von PoseObjInCam0</c>
-<c>        </c>
+<c>        * Positionsausgabe</c>
 <l>        write_pose(ObjPoseInCam0, MatchIndex +' Koord.dat')</l>
-<c>        </c>
-<c>        </c>
-<c>        </c>
 <c>        *Braucht nur Koordinaten im Bild, diese können so</c>
 <c>        *an den Roboter </c>
 <l>        disp_3d_coord_system (WindowHandle1, CamParam0, ObjPoseInCam0, 0.01+(0.02*MatchIndex))  </l>
@@ -194,7 +200,7 @@
 <l>        dev_set_line_width (2)</l>
 <l>        dev_set_color ('green')</l>
 <l>        dev_display (ModelContours)</l>
-<l>        dev_inspect_ctrl (WorldPose0)</l>
+<l>        *dev_inspect_ctrl (WorldPose0)</l>
 <l>        clear_object_model_3d (ObjectModel3DRigidTrans)</l>
 <l>    endfor</l>
 <l>    set_system ('flush_graphic', 'true')</l>
@@ -203,7 +209,6 @@
 <l>    Message := 'Reconstruction: ' + ReconsTime$'.2f' + ' s'</l>
 <l>    Message[1] := 'Gefunden : ' + |Scores| + ' Objects in ' + MatchingDiff$'.2f' + ' s'</l>
 <l>    *dev_open_window (0, 0, Width, Height, 'black', WindowHandle3)</l>
-<c>     *Positionsausgabe</c>
 <c>    </c>
 <l>    dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle4)</l>
 <l>    set_display_font (WindowHandle4, 16, 'mono', 'true', 'false')</l>
@@ -252,13 +257,18 @@
 <c>* Read the images of the multi-view stereo setup</c>
 <c>* </c>
 <l>read_image (Image1, ImagePath + ImagePrefix + '0')</l>
-<l>scale_image (Image1, Images,11.087, -1208)</l>
+<c>*scheibe Neu</c>
+<l>scale_image (Image1, Images, 1.88889, -127)</l>
+<c>*scheibe alt</c>
+<l>*scale_image (Image1, Images,11.087, -1208)</l>
 <l>for Index := 1 to NumCamera - 1 by 1</l>
 <l>    read_image (Img, ImagePath + ImagePrefix + Index)</l>
 <c>    *Block</c>
 <l>*     scale_image (Img, ImageScaled1, 4.1129, -526)</l>
+<c>    *scheibe neu</c>
+<l>    scale_image (Img, ImageScaled1, 1.88889, -127)</l>
 <c>    *Scheibe</c>
-<l>    scale_image (Img, ImageScaled1, 11.087, -1208)</l>
+<l>    *scale_image (Img, ImageScaled1, 11.087, -1208)</l>
 <l>    *concat_obj (Images, Img, Images)</l>
 <l>    concat_obj (Images, ImageScaled1, Images)</l>
 <c></c>
