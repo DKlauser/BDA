@@ -35,6 +35,7 @@
 <l>ImagePrefix := 'block_'</l>
 <l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/block_b/block_0.bmp')</l>
 <c></c>
+<c></c>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
 <c></c>
@@ -76,7 +77,7 @@
 <l>*set_stereo_model_image_pairs (StereoModelID,[1,1,2,2],[0,3,1,2])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.02])</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.025])</l>
 <c>* -&gt; Subsampling X, Y, Z</c>
 <l>set_stereo_model_param (StereoModelID, 'surface_tolerance', 0.05)</l>
 <l>*set_stereo_model_param(StereoModelID,'smoothing',0.1)</l>
@@ -99,7 +100,7 @@
 <c>    *Scheibe</c>
 <l>    *read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, Status)</l>
 <c>     *Block mittel</c>
-<l>    read_object_model_3d ('PLYOBJEKTE/Block_klein_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>    read_object_model_3d ('PLYOBJEKTE/Block_mittel_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
 <l>    write_object_model_3d(ObjectCADModel3D, 'om3', 'Block1', [], [])    </l>
 <l>endif</l>
 <l>create_surface_model (ObjectCADModel3D, 0.05, ['model_invert_normals','feat_angle_resolution'], ['true',20], ScheibeSMID)</l>
