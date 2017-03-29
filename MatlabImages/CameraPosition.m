@@ -34,12 +34,9 @@ grid on
  hold off;
  figure(2);
  imshow('4Objects.png')
- 
-
- 
-   
-
- 
+%%
+ptCloud = pcread('Punktewolke.ply');
+pcshow(ptCloud);
  
  
  
