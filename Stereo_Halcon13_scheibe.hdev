@@ -26,14 +26,21 @@
 <l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/scheiben_0.png')</l>
 <c></c>
 <c>* Scheiben neu nach 27.3</c>
-<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_b/'</l>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_schwer/'</l>
 <l>ImagePrefix := 'scheiben_'</l>
-<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_b/scheiben_0.bmp')</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_schwer/scheiben_0.bmp')</l>
 <c></c>
 <c>*Blöcke</c>
 <l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/alle_blocke/'</l>
 <l>* ImagePrefix := 'block_'</l>
 <l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/alle_blocke/block_0.png')</l>
+<c></c>
+<c>*Camera Model Lesen</c>
+<l>* CalibPath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Kalibrationsplatte/CalibData/'</l>
+<l>* file_exists (CalibPath+'four_camera_setup_model.csm', FileExists)</l>
+<l>* if (FileExists)</l>
+<l>*     read_camera_setup_model (CalibPath + 'four_camera_setup_model.csm', CameraSetupModelID)</l>
+<l>* endif</l>
 <c></c>
 <l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
@@ -61,26 +68,35 @@
 <l>get_camera_setup_param (CameraSetupModelID, 'general', 'num_cameras', NumCameras)</l>
 <l>get_camera_setup_param (CameraSetupModelID, 0, 'pose', Pose0)</l>
 <l>get_camera_setup_param (CameraSetupModelID, 0, 'params', CamParam0)</l>
+<c></c>
+<c></c>
 <c>* </c>
 <c>* Create a multi-view stereo model, initialize it, and clear</c>
 <c>* the camera setup, which is no longer required.</c>
 <l>create_stereo_model (CameraSetupModelID, 'surface_fusion', [], [], StereoModelID)</l>
 <l>clear_camera_setup_model (CameraSetupModelID)</l>
-<c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
-<l>set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
+<c>* -&gt; Interpolation aliasing by binocular image rectification</c>
+<l>* set_stereo_model_param (StereoModelID, 'rectif_interpolation', 'bilinear')</l>
 <c>*0.4 </c>
-<l>set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 0.7)</l>
+<l>* set_stereo_model_param (StereoModelID, 'rectif_sub_sampling', 0.6)</l>
 <c>* -&gt; Define camera pairs and bounding box.</c>
 <c>*Bei Speicher Error, hier schauen welches bild nicht gut ist!!</c>
-<l>set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
+<l>* set_stereo_model_image_pairs (StereoModelID, [0,0,0], [1,2,3])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID,[1,1,2,2],[0,3,1,2])</l>
 <l>*set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
 <c>*Schauen das dass Objekt in der box ist!!!</c>
-<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.2,-0.15,0.001,0.2,0.15,0.015])</l>
-<c>* -&gt; Subsampling X, Y, Z</c>
-<l>*set_stereo_model_param (StereoModelID, 'surface_tolerance', 0.02)</l>
-<l>*set_stereo_model_param(StereoModelID,'smoothing',0.005)</l>
-<l>set_stereo_model_param(StereoModelID,'min_thickness',0.06)</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', [-0.07,-0.7,0.001,0.07,0.7,0.015])</l>
+<c>* -&gt; Subsampling X, Y, Z)</c>
+<l>set_stereo_model_param (StereoModelID, 'binocular_mask_width', 11)</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_mask_height', 11)</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_sub_disparity', 'interpolation')</l>
+<l>*set_stereo_model_param (StereoModelID, 'surface_tolerance', 0.06)</l>
+<l>*set_stereo_model_param(StereoModelID,'smoothing',2)</l>
+<l>*set_stereo_model_param(StereoModelID,'min_thickness',0.5)</l>
+<c></c>
+<c>*Kamera Kalibrierungsqualität</c>
+<c></c>
 <c>* -&gt; Binocular disparity parameters.</c>
 <c>*zuviel rauschen, tresh muss besser gesetzt werden.</c>
 <l>*set_stereo_model_param(StereoModelID,'binocular_score_thresh',0.5)</l>
@@ -130,6 +146,7 @@
 <l>Instructions[0] := 'Rotate: Left button'</l>
 <l>Instructions[1] := 'Zoom:   Shift + left button'</l>
 <l>Instructions[2] := 'Move:   Ctrl  + left button'</l>
+<l>*Instructions[3] := FEHLER + ' Kamera Kalibration'</l>
 <c>* </c>
 <l>pose_invert (Pose0, WorldPose0)</l>
 <c>* </c>

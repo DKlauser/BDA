@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="13.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Reconstruct the three-dimensional surface of a pile of pipe</c>
+<c>* joints by using a multi-view stereo setup with four similar</c>
+<c>* cameras and detect the position of each joint by using</c>
+<c>* surface-based 3D matching.</c>
+<c></c>
+<c>* </c>
+<c>* </c>
+<c>* *****</c>
+<c>* Initializations:</c>
+<c>* *****</c>
+<c>* </c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c>* Scheiben alt vor 27.3</c>
+<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/'</l>
+<l>* ImagePrefix := 'scheiben__'</l>
+<l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_licht/scheiben_0.png')</l>
+<l>*PathData := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Kalibrationsplatte/CalibData/'</l>
+<c>* Scheiben neu nach 27.3</c>
+<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_b/'</l>
+<l>* ImagePrefix := 'scheiben__'</l>
+<l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/scheiben_b/scheiben_0.bmp')</l>
+<c>* Scheiben neu nach 5.4</c>
+<l>ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/KalibSchräg40/scheiben/'</l>
+<l>ImagePrefix := 'scheiben_'</l>
+<l>read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/KalibSchräg40/scheiben/scheiben_0')</l>
+<c></c>
+<c>*Blöcke</c>
+<l>* ImagePath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/alle_blocke/'</l>
+<l>* ImagePrefix := 'block_'</l>
+<l>* read_image (Image, 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Calib_norm_36.5cm/alle_blocke/block_0.png')</l>
+<c></c>
+<c>*Camera Model Lesen</c>
+<l>* CalibPath := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Kalibrationsplatte/CalibData/'</l>
+<l>* file_exists (CalibPath+'four_camera_setup_model.csm', FileExists)</l>
+<l>* if (FileExists)</l>
+<l>*     read_camera_setup_model (CalibPath + 'four_camera_setup_model.csm', CameraSetupModelID)</l>
+<l>* endif</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
+<c></c>
+<c>*Nur zum Bearbeiten.ma</c>
+<l>*dev_display(Image)</l>
+<c></c>
+<l>dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle1)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>set_display_font (WindowHandle1, 16, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* </c>
+<c>* *****</c>
+<c>* Part 1: Initialize cameras, get the parameters and poses of the cameras.</c>
+<c>* *****</c>
+<c>* </c>
+<c></c>
+<c>**Kontrast von Bilder ändern bevor verarbeitung</c>
+<c></c>
+<c></c>
+<c></c>
+<c>* Referenz Kamera wird die erste! Koordinaten System kann abgeschätzt werden von </c>
+<c>* Den Kalibrationsdaten!</c>
+<l>init_camera_setup (CameraSetupModelID)</l>
+<l>get_camera_setup_param (CameraSetupModelID, 'general', 'num_cameras', NumCameras)</l>
+<l>get_camera_setup_param (CameraSetupModelID, 0, 'pose', Pose0)</l>
+<l>get_camera_setup_param (CameraSetupModelID, 0, 'params', CamParam0)</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Create a multi-view stereo model, initialize it, and clear</c>
+<c>* the camera setup, which is no longer required.</c>
+<l>create_stereo_model (CameraSetupModelID, 'surface_pairwise', [], [], StereoModelID)</l>
+<c>*Pairs</c>
+<l>set_stereo_model_image_pairs (StereoModelID, [0,1], [2,3])</l>
+<c></c>
+<c>*Bounding Box</c>
+<l>CameraSize := 0.01</l>
+<l>ConeLength := 0.4</l>
+<l>VisPose:=[0.0,0.15,1.1,285.,0.0,340,0]</l>
+<l>estimate_bounding_box_3d_reconstruction (StereoModelID, 0.05, BoundingBox)</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', BoundingBox)</l>
+<l>gen_camera_setup_object_model_3d (CameraSetupModelID, CameraSize, ConeLength, ObjectModel3DCamera, ObjectModel3DCone)</l>
+<l>gen_bounding_box_object_model_3d (StereoModelID, ObjectModel3DBoundingBox)</l>
+<l>Title := 'Initial bounding box with the cameras of the stereo setup'</l>
+<l>visualize_object_model_3d (WindowHandle1, [ObjectModel3DBoundingBox,ObjectModel3DCone,ObjectModel3DCamera], CamParam0, VisPose, ['lut','color_0','alpha','disp_pose_0'], ['sqrt','green',0.5,'true'], Title, [], Instructions, VisPose)</l>
+<l>set_stereo_model_param(StereoModelID,'rectif_interpolation','bilinear')</l>
+<c>* -&gt; Interpolation aliasing by binocular image rectification.</c>
+<l>set_stereo_model_param (StereoModelID, 'disparity_method', 'binocular')</l>
+<c>* -&gt; Define camera pairs and bounding box.</c>
+<l>*set_stereo_model_param (StereoModelID, 'binocular_filter', 'left_right_check')</l>
+<c>*Color</c>
+<l>set_stereo_model_param(StereoModelID,'color','line_of_sight')</l>
+<c>*thresh</c>
+<l>* set_stereo_model_param(StereoModelID,'binocular_method','ncc')</l>
+<c></c>
+<l>* set_stereo_model_param(StereoModelID,'binocular_num_levels',1)</l>
+<c>* *****</c>
+<c>* Part 2: Create a surface model of the pipe fittings to be matched.</c>
+<c>* *****</c>
+<c></c>
+<c></c>
+<l>file_exists ('Block.om3', FileExists)</l>
+<l>if (FileExists)</l>
+<l>    read_object_model_3d('Block.om3','m',[], [], ObjectCADModel3D, Status)</l>
+<l>else</l>
+<c>    *Scheibe</c>
+<l>    read_object_model_3d ('PLYOBJEKTE/Scheibe.ply', 'mm', [], [], ObjectCADModel3D, Status)</l>
+<c>     *Block mittel</c>
+<l>    *read_object_model_3d ('PLYOBJEKTE/Block_gross_red02.ply', 'mm', [], [], ObjectCADModel3D, DxfStatus)</l>
+<l>    write_object_model_3d(ObjectCADModel3D, 'om3', 'Block', [], [])    </l>
+<l>endif</l>
+<l>create_surface_model (ObjectCADModel3D, 0.05, [], [], ScheibeSMID)</l>
+<c>*Erstellt ein Sample Model aus dem 3D model!</c>
+<c></c>
+<l>*sample_object_model_3d(ObjectCADModel3D, 'fast', 0.001, [], [], SampledObjectModel3D)</l>
+<l> *disp_object_model_3d (WindowHandle, ScheibeSMID, CamParam0, Pose0, 'colored', 12)</l>
+<l>  *disp_object_model_3d (WindowHandle1, ScheibeSMID, CamParam0, Pose0, 'colored', 12)</l>
+<l>PoseIn := [0.0,0.0,0.5,-30,0,180,0]</l>
+<l>ReconsTime := 30</l>
+<l>*visualize_object_model_3d (WindowHandle1, SampledObjectCADModel3D, CamParam0, PoseIn, ['color','point_size'], ['yellow',1], 'Reconstructed scene in ' + ReconsTime$'.3' + ' s', [], Instructions, PoseOut)</l>
+<c></c>
+<c>* </c>
+<c>* *****</c>
+<c>* Part 3: Reconstruct the surface of the pile of pipe fittings</c>
+<c>*         and detect the position of up to MaxNumParts by using</c>
+<c>*         surface-based 3D matching.</c>
+<c>* *****</c>
+<c></c>
+<c>*'sparse_pose_refinement' verfeinert die Posen : true/false</c>
+<c>*'dense_pose_refinement' erhöht die exakten Posen : true/false</c>
+<c>*'pose_ref_sub_sampling':durch Iteration(Parameter) wird die Iteration erhöht</c>
+<l>NumMatches := 5</l>
+<c>*0.15</c>
+<l>MinScore := 0.3</l>
+<l>Params := ['num_matches','pose_ref_scoring_dist_rel','scene_normal_computation','max_overlap_dist_rel','sparse_pose_refinement','pose_ref_use_scene_normals']</l>
+<l>Values := [NumMatches,0.2,'mls',0.6,'false','false']</l>
+<l>Instructions[0] := 'Rotate: Left button'</l>
+<l>Instructions[1] := 'Zoom:   Shift + left button'</l>
+<l>Instructions[2] := 'Move:   Ctrl  + left button'</l>
+<l>*Instructions[3] := FEHLER + ' Kamera Kalibration'</l>
+<c>* </c>
+<l>pose_invert (Pose0, WorldPose0)</l>
+<c>* </c>
+<l>gen_empty_obj (EmptyObject)</l>
+<l>NumImages := 4</l>
+<l>for Index := 1 to NumImages by 1</l>
+<c>    * </c>
+<c>    * Read and display the images.</c>
+<l>    read_multi_view_stereo_images (Images, ImagePath, ImagePrefix, Index, NumCameras)</l>
+<c>    * </c>
+<c>    * Reconstruct the 3D scene (the pile of pipe fittings).</c>
+<l>    display_multi_view_stereo_images (Images, WindowHandle)</l>
+<l>    Message := 'Images for reconstruction'</l>
+<l>    disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>    count_seconds (T0)</l>
+<c>    *Reconstructed Model wird zurückgegeben.</c>
+<l>    reconstruct_surface_stereo (Images, StereoModelID, ReconstructedModel3D)</l>
+<c>    **</c>
+<c>    * Punktewolke ausgeben</c>
+<l>    *write_object_model_3d(ReconstructedModel3D,'ply','Punktewolke',[],[])</l>
+<l>    *write_surface_model(ReconstrucedModel3D,'Punktewolke')</l>
+<l>    count_seconds (T1)</l>
+<l>    ReconsTime := T1 - T0</l>
+<c>    * </c>
+<l>    PoseIn := [0.0,0.0,0.5,-30,0,180,0]</l>
+<l>    if (Index == 1)</l>
+<l>        visualize_object_model_3d (WindowHandle1, ReconstructedModel3D, CamParam0, PoseIn, ['color','point_size'], ['yellow',1], 'Reconstructed scene in ' + ReconsTime$'.3' + ' s', [], Instructions, PoseOut)</l>
+<l>        *disp_3d_coord_system (WindowHandle1,CamParam0,PoseIn, 0.03)</l>
+<l>    endif</l>
+<c>    * </c>
+<c>    * Perform surface-based 3D matching.</c>
+<l>    Message[1] := 'Search best parts with surface based matching...'</l>
+<l>    disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>    count_seconds (T2)</l>
+<c>    *RELSAMPLINGDISTANCE : OBJECT MODEL WIRD ABGETASTET</c>
+<c>    *KeyPointFraction : Gibt Schlüsselpunkte an.. sollte ca 10% sein.</c>
+<l>    find_surface_model (ScheibeSMID,ReconstructedModel3D, 0.03, 0.25, MinScore, 'true', Params, Values, Poses, Scores, SurfaceMatchingResultID)</l>
+<l>    get_surface_matching_result (SurfaceMatchingResultID, 'sampled_scene', [], SampledScene)</l>
+<l>    get_surface_matching_result (SurfaceMatchingResultID, 'key_points', [], KeyPoints)</l>
+<c>    </c>
+<c>    *Öffnet Fenster mit Schlüsselpunkten usw.</c>
+<c>'</c>
+<l>*     dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle3)</l>
+<l>*     set_display_font (WindowHandle3, 16, 'mono', 'true', 'false')</l>
+<l>*     Message := 'Original scene points (white)'</l>
+<l>*     Message[1] := 'Sampled scene points (cyan)'</l>
+<l>*     Message[2] := 'Schlüsselpunkte (Gelb)'</l>
+<l>*     visualize_object_model_3d (WindowHandle3, [ReconstructedModel3D,SampledScene,KeyPoints], [], [], ['color_' + [0,1,2],'point_size_' + [0,1,2]], ['gray','cyan','yellow',1.0,3.0,5.0], Message, [], Instructions, PoseOut)</l>
+<l>    count_seconds (T3)</l>
+<l>    MatchingDiff := T3 - T2</l>
+<c>    * </c>
+<c>    * Display the results.</c>
+<l>    set_system ('flush_graphic', 'false')</l>
+<l>    select_obj (Images, Img, 1)</l>
+<l>    dev_set_part (0, 0, Height - 1, Width - 1)</l>
+<l>    dev_set_window (WindowHandle1)</l>
+<l>    dev_display (Img)</l>
+<l>    for MatchIndex := 0 to |Scores| - 1 by 1</l>
+<l>        PoseObjInWorld := Poses[MatchIndex * 7:(MatchIndex * 7) + 6]</l>
+<l>        pose_invert (PoseObjInWorld, PoseWorldInObj)</l>
+<l>        pose_compose (PoseWorldInObj, Pose0, PoseCamInObj)</l>
+<l>        pose_invert (PoseCamInObj, ObjPoseInCam0)</l>
+<c>        * Display the coordinate system of the part.</c>
+<l>        dev_set_colored (3)</l>
+<l>        dev_set_line_width (3)</l>
+<c>        * Exportieren von PoseObjInCam0</c>
+<c>        * Positionsausgabe</c>
+<l>        write_pose(ObjPoseInCam0, MatchIndex +' Koord.dat')</l>
+<c>        *Braucht nur Koordinaten im Bild, diese können so</c>
+<c>        *an den Roboter </c>
+<l>        disp_3d_coord_system (WindowHandle1, CamParam0, ObjPoseInCam0, 0.01+(0.02*MatchIndex))  </l>
+<l>        *dev_inspect_ctrl (ObjPoseInCam0)</l>
+<c>        * Display the faces of the part.</c>
+<c>        *3D Transformationen auf 3D Objektmodelle</c>
+<l>        rigid_trans_object_model_3d (ObjectCADModel3D, PoseObjInWorld, ObjectModel3DRigidTrans)</l>
+<c>        *ObjectModel3DRigidTrans übergibt hier Koordinaten aus der Welt und mit dieser Funktion werden sie in die Kamerakoordinaten gegeben.</c>
+<l>        project_object_model_3d (ModelContours, ObjectModel3DRigidTrans, CamParam0, WorldPose0, ['data','hidden_surface_removal'], ['faces','true'])</l>
+<l>        dev_set_line_width (2)</l>
+<l>        dev_set_color ('green')</l>
+<l>        dev_display (ModelContours)</l>
+<l>        *dev_inspect_ctrl (WorldPose0)</l>
+<l>        clear_object_model_3d (ObjectModel3DRigidTrans)</l>
+<l>    endfor</l>
+<l>    set_system ('flush_graphic', 'true')</l>
+<c>    * </c>
+<c></c>
+<l>    Message := 'Reconstruction: ' + ReconsTime$'.2f' + ' s'</l>
+<l>    Message[1] := 'Gefunden : ' + |Scores| + ' Objects in ' + MatchingDiff$'.2f' + ' s'</l>
+<l>    *dev_open_window (0, 0, Width, Height, 'black', WindowHandle3)</l>
+<c>    </c>
+<l>    dev_open_window_fit_image (Image, 0, Width + 8, -1, -1, WindowHandle4)</l>
+<l>    set_display_font (WindowHandle4, 16, 'mono', 'true', 'false')</l>
+<l>    disp_3d_coord_system (WindowHandle4, CamParam0,PoseObjInWorld , 0.01)</l>
+<l>    disp_message (WindowHandle, 'Converting the pose into robot coordinates', 'window', -1, -1, 'black', 'true')</l>
+<l>    *dev_inspect_ctrl(PoseObjInWorld)</l>
+<c>    * This pose should then be sent to the robot</c>
+<l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
+<c></c>
+<c></c>
+<c>    </c>
+<c></c>
+<l>    disp_message (WindowHandle1, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>    disp_message (WindowHandle1, 'Camera 0', 'window', Height - 36, 12, 'white', 'false')</l>
+<l>    if (Index &lt; NumImages)</l>
+<l>        disp_continue_message (WindowHandle1, 'black', 'true')</l>
+<l>        stop ()</l>
+<l>    endif</l>
+<c>    * </c>
+<c>    * Clear the 3D object model.</c>
+<l>    clear_object_model_3d (ObjectCADModel3D)</l>
+<l>endfor</l>
+<c>* </c>
+<c>* Clear the stereo model and the surface model.</c>
+<l>clear_stereo_model (StereoModelID)</l>
+<l>clear_surface_model (ScheibeSMID)</l>
+<l>clear_object_model_3d (ObjectCADModel3D)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="read_multi_view_stereo_images">
+<interface>
+<oo>
+<par name="Images" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="ImagePath" base_type="ctrl" dimension="0"/>
+<par name="ImagePrefix" base_type="ctrl" dimension="0"/>
+<par name="SceneIndex" base_type="ctrl" dimension="0"/>
+<par name="NumCamera" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* Read the images of the multi-view stereo setup</c>
+<c>* </c>
+<l>read_image (Images, ImagePath + ImagePrefix + '0')</l>
+<c>*scheibe Neu</c>
+<l>*scale_image (Image1, Images, 1.88889, -127)</l>
+<c>*scheibe alt</c>
+<l>*scale_image (Image1, Images,11.087, -1208)</l>
+<l>for Index := 1 to NumCamera - 1 by 1</l>
+<l>    read_image (Img, ImagePath + ImagePrefix + Index)</l>
+<c>    *Block</c>
+<l>*     scale_image (Img, ImageScaled1, 4.1129, -526)</l>
+<c>    *scheibe neu</c>
+<l>    *scale_image (Img, ImageScaled1, 1.88889, -127)</l>
+<c>    *Scheibe</c>
+<l>    *scale_image (Img, ImageScaled1, 11.087, -1208)</l>
+<l>    concat_obj (Images, Img, Images)</l>
+<l>    *concat_obj (Images, ImageScaled1, Images)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="read_multi_view_stereo_images">
+<parameters>
+<parameter id="ImagePath"/>
+<parameter id="ImagePrefix"/>
+<parameter id="Images"/>
+<parameter id="NumCamera"/>
+<parameter id="SceneIndex"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="display_multi_view_stereo_images">
+<interface>
+<io>
+<par name="Images" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="WindowHandle" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* Display the images of a multi-view stereo setup</c>
+<c>* consisting of four cameras</c>
+<c>* </c>
+<l>dev_set_window (WindowHandle)</l>
+<c>* </c>
+<l>count_obj (Images, NumImages)</l>
+<l>if (NumImages != 4)</l>
+<l>    disp_message (WindowHandle, 'Wrong number of images provided!', 'window', 12, 12, 'black', 'true')</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>* </c>
+<l>NumCols := 2</l>
+<l>select_obj (Images, Img, 1)</l>
+<l>get_image_size (Img, Width, Height)</l>
+<l>tile_images (Images, TiledImage, NumCols, 'horizontal')</l>
+<l>dev_set_part (0, 0, (2 * Height) - 1, (2 * Width) - 1)</l>
+<l>dev_display (TiledImage)</l>
+<c>* </c>
+<l>for Index := 0 to NumImages - 1 by 1</l>
+<l>    RowIdx := (Index / NumCols) + 1</l>
+<l>    ColIdx := Index % NumCols</l>
+<l>    disp_message (WindowHandle, 'Camera ' + Index, 'image', (RowIdx * Height) - 72, (ColIdx * Width) + 12, 'white', 'false')</l>
+<l>endfor</l>
+<l>return ()</l>
+<c>* </c>
+</body>
+<docu id="display_multi_view_stereo_images">
+<parameters>
+<parameter id="Images"/>
+<parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="init_camera_setup">
+<interface>
+<oc>
+<par name="CameraSetupModelID" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>PathData := 'C:/Users/Daniel Klauser/Documents/GitHub/BDA/Kalibrationsplatte/CalibData/'</l>
+<c></c>
+<c></c>
+<c>*IIWA AUF 45Cm ohne Winkel</c>
+<c>* Z Trans zuerst auf .- setzten.</c>
+<c>*Cam/Pose1</c>
+<l>* CamParam0 := [0.00791499,-955.21,2.19472e-006,2.2e-006,1299.54,966.949,2560,1920]</l>
+<l>* Pose0 := [-0.0553737,0.0584195,-0.481797,0.257076,359.363,178.425,0]</l>
+<c>* CAM/Pose2</c>
+<l>* CamParam1 := [0.00766424,-989.386,2.19187e-006,2.2e-006,1314.85,972.524,2560,1920]</l>
+<l>* Pose1 := [-0.0587137,-0.0449632,-0.466432,359.676,359.481,178.37,0]</l>
+<c>* CAM/POSE 3</c>
+<l>* CamParam2 := [0.00773208,-979.919,2.19287e-006,2.2e-006,1312.27,967.687,2560,1920]</l>
+<l>* Pose2 := [0.0438271,-0.0456287,-0.471678,359.654,359.149,178.37,0]</l>
+<c>* CAM/POSE4</c>
+<l>* CamParam3 := [0.00782266,-1012.26,2.19298e-006,2.2e-006,1294.55,973.609,2560,1920]</l>
+<l>* Pose3 := [0.0475012,0.0566594,-0.477529,0.228425,359.184,178.399,0]</l>
+<c></c>
+<c>*CameraCalib 365mm</c>
+<c>*3</c>
+<l>* CamParam3 := [0.00771128,-1222.1,2.20126e-006,2.2e-006,1320.38,1018.23,2560,1920]</l>
+<l>* Pose3 := [0.0270085,0.02980176,-0.3540156,359.873,359.494,179.099,0]</l>
+<c>*2</c>
+<l>* CamParam2 := [0.00767229,-1126.93,2.20371e-006,2.2e-006,1321.14,1012.56,2560,1920]</l>
+<l>* Pose2 := [0.02700667,-0.03580865,-0.35405598,359.765,359.402,179.062,0]</l>
+<c>*1</c>
+<l>* CamParam1 := [0.00774252,-868.79,2.20327e-006,2.2e-006,1297.74,1011.09,2560,1920]</l>
+<l>* Pose1 := [-0.03300727,-0.0358078,-0.354055,359.834,359.8,179.089,0]</l>
+<c>*0</c>
+<l>* CamParam0 := [0.00776004,-811.837,2.20124e-006,2.2e-006,1301.98,1036.19,2560,1920]</l>
+<l>* Pose0 := [-0.033004163,0.02980055,-0.3540554,0.305953,0.0558555,179.118,0]</l>
+<c></c>
+<c></c>
+<c>*0.00763388,1127.76,-1.05214e+007,1.86691e+011,0.270339,0.271273,2.19175e-006,2.2e-006,1292.04,1008.27,2560,1920</c>
+<c>*Andere Posen 36.5</c>
+<c>*3</c>
+<l>* CamParam3 :=[0.00767213,1160.03825000000,-15365785,661151750000.000,0.221794225000000,0.288161950000000,2.19175e-006,2.2e-006,1297.52000000000,1004.72150000000, 2560, 1920]</l>
+<l>* Pose3 :=[-0.1085486, -0.0915578, -0.396201, 345.043, 14.5188, 0, 0]</l>
+<l>read_pose(PathData + 'posS0.dat',Pose0)</l>
+<l>read_cam_par(PathData + 'cam_S0-param.dat',CamParam0)</l>
+<c>*2</c>
+<l>* CamParam2 :=[0.00766413,1160.03825000000,--15365785,661151750000.000,0.221794225000000,0.288161950000000,2.19175e-006,2.2e-006,1297.52000000000,1004.72150000000, 2560, 1920]</l>
+<l>* Pose2 :=[-0.10874011, 0.110218, -0.396666, 14.6021, 14.8549, 0, 0]</l>
+<l>read_pose(PathData +'posS1.dat',Pose1)</l>
+<l>read_cam_par(PathData +'cam_S1-param.dat',CamParam1)</l>
+<c>*1</c>
+<l>* CamParam1 :=[0.00766748,1160.03825000000,-15365785,661151750000.000,0.221794225000000,0.288161950000000,2.19175e-006,2.2e-006,1297.52000000000,1004.72150000000, 2560, 1920]</l>
+<l>* Pose1 :=[0.109917, 0.113168, -0.396411, 14.8461, 345.952, 0, 0]</l>
+<l>read_pose(PathData +'posS2.dat',Pose2)</l>
+<l>read_cam_par(PathData +'cam_S2-param.dat',CamParam2)</l>
+<c>*0</c>
+<l>* CamParam0 :=[0.00767179,1160.03825000000,-15365785,661151750000.000,0.221794225000000,0.288161950000000,2.19175e-006,2.2e-006,1297.52000000000,1004.72150000000, 2560, 1920]</l>
+<l>* Pose0 :=[0.109837, -0.0910041, -0.396513, 345.126, 345.524, 0, 0]</l>
+<l>read_pose(PathData +'posS3.dat',Pose3)</l>
+<l>read_cam_par(PathData +'cam_S3-param.dat',CamParam3)</l>
+<c></c>
+<c></c>
+<c>*WEBCAM AUF 43cm</c>
+<c>*Parameter[’area_scan_polynomial’, Focus, K1, K2, K3, P1, P2, Sx, Sy, Cx, Cy, ImageWidth, ImageHeight]</c>
+<l>* CamParam0 := [0.0031218,-11216.1,2.32971e+009,-7.31669e+013,-0.209692,-0.296492,2.19145e-006,2.2e-006,987.614,598.92,1920,1080]</l>
+<l>* CamParam1 :=[0.00318205,-11303.8,2.38186e+009,-7.92096e+013,-0.261845,-0.340565,2.1935e-006,2.2e-006,987.505,599.184,1920,1080]</l>
+<l>* CamParam2 :=  [0.00309938,-11319.5,2.35269e+009,-7.8911e+013,0.129894,-0.0435177,2.19199e-006,2.2e-006,991.39,595.654,1920,1080]</l>
+<l>* CamParam3 := [0.00315229,-11748.2,2.49474e+009,-7.97289e+013,-0.177329,-0.188707,2.19236e-006,2.2e-006,992.387,595.088,1920,1080]</l>
+<c></c>
+<l>* Pose3 := [0.10743,-0.0404686,-0.434389,5.15003,0.313953,358.301,0]</l>
+<l>* Pose2 := [-0.098926,-0.021663,-0.434532,1.38859,359.958,358.814,0]</l>
+<l>* Pose1 := [0.097408,-0.0103364,-0.444745,345.922,0.234055,179.507,0]</l>
+<l>* Pose0 :=[-0.092342,-0.0460974,-0.431712,350.684,0.293669,179.835,0]</l>
+<c>* </c>
+<c>* Create a camera setup model and set its parameters</c>
+<l>create_camera_setup_model (4, CameraSetupModelID)</l>
+<c>* </c>
+<c></c>
+<c>*Parameter [xtrans,ytrany,ztrans,xrot,yrot,zrot,0]</c>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 0, 'area_scan_polynomial', CamParam0, Pose0)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 1, 'area_scan_polynomial', CamParam1, Pose1)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 2, 'area_scan_polynomial', CamParam2, Pose2)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 3, 'area_scan_polynomial', CamParam3, Pose3)</l>
+<l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c>**Trys</c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Define the internal and external camera parameters</c>
+<l>* CamParam0 := [0.00850373,4008.61,-2.95892e+008,2.37315e+013,0.139749,-0.00367983,5.99965e-006,6e-006,362.715,236.769,752,480]</l>
+<l>* CamParam1 := [0.00854019,3445.26,-1.18075e+008,6.40715e+012,-0.0527818,-0.192439,5.99894e-006,6e-006,406.13,254.15,752,480]</l>
+<l>* CamParam2 := [0.00852569,3938.44,-2.75967e+008,2.27295e+013,0.231091,0.193667,6.00001e-006,6e-006,367.159,242.477,752,480]</l>
+<l>* CamParam3 := [0.00853794,3793.19,-3.49193e+008,3.9611e+013,0.0264028,0.147156,6.00169e-006,6e-006,397.066,224.671,752,480]</l>
+<c>* </c>
+<l>* Pose0 := [0.0496073,0.0280127,-0.431281,3.5466,354.117,179.758,0]</l>
+<l>* Pose1 := [0.0495484,-0.0297644,-0.429654,355.333,354.014,359.147,0]</l>
+<l>* Pose2 := [-0.0411315,-0.0294687,-0.427325,355.519,4.45356,359.876,0]</l>
+<l>* Pose3 := [-0.0414501,0.0288074,-0.429167,2.94179,4.59538,179.173,0]</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>*IIWA auf 45 cm mit winkel 10°</c>
+<c>*0</c>
+<l>* CamParam0:= [0.00773331,1635.84,-1.14728e+008,6.28377e+012,0.374646,-0.0221808,2.19058e-006,2.2e-006,1258.46,986.36,2560,1920]</l>
+<l>* Pose0 := [0.0133878,-0.0123234,-0.475275,6.24346,5.99036,358.636,0]</l>
+<c>*1</c>
+<l>* CamParam1 := [0.0075598,1558.22,-9.65061e+007,5.28054e+012,0.406553,0.148962,2.19087e-006,2.2e-006,1282.88,972.712,2560,1920]</l>
+<l>* Pose1 := [0.0100763,-0.0109718,-0.465767,353.794,5.94434,359.893,0]</l>
+<c>*2</c>
+<l>* CamParam2 := [0.00772714,1425.36,-6.85897e+007,3.48905e+012,0.205745,0.139494,2.19085e-006,2.2e-006,1300.88,942.815,2560,1920]</l>
+<l>* Pose2 := [0.00688544,-0.0067534,-0.477912,353.344,353.501,358.533,0]</l>
+<c>*3</c>
+<l>* CamParam3 := [0.00761183,1524.93,-9.31844e+007,5.14651e+012,0.132659,-0.126585,2.19078e-006,2.2e-006,1288.05,967.991,2560,1920]</l>
+<l>* Pose3 := [0.0084914,-0.00924695,-0.469512,5.95224,353.397,359.942,0]</l>
+<c></c>
+<c></c>
+</body>
+<docu id="init_camera_setup">
+<parameters>
+<parameter id="CameraSetupModelID"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
