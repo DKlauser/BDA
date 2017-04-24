@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="13.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c></c>
+<c>* </c>
+<c>* Read and display the images.</c>
+<l>ImagePath := 'scheiben/'</l>
+<l>ImagePrefix := 'scheiben_'</l>
+<l>ImagePrefix := 'scheiben_eq_'</l>
+<l>read_multi_view_stereo_images (Images, ImagePath, ImagePrefix, 0, 4)</l>
+<l>select_obj (Images, Image, 1)</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1 ,-1, WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* read calibration data</c>
+<l>init_camera_setup (CameraSetupModelID)</l>
+<l>get_camera_setup_param (CameraSetupModelID, 'general', 'num_cameras', NumCameras)</l>
+<c>*</c>
+<c>* zoom image</c>
+<l>Factor := 0.5</l>
+<l>zoom_image_factor (Images, Images, Factor, Factor, 'constant')</l>
+<l>zoom_camera_parameters (CameraSetupModelID, Factor)</l>
+<c></c>
+<c>* </c>
+<c>* Create a multi-view stereo model</c>
+<l>create_stereo_model (CameraSetupModelID, 'surface_pairwise', [], [], StereoModelID)</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_score_thresh', 0.8)</l>
+<c>* Pairs</c>
+<l>set_stereo_model_image_pairs (StereoModelID, [0,0,0,1,1,2], [1,2,3,2,3,3])</l>
+<l>* set_stereo_model_image_pairs (StereoModelID, [0,1,2], [1,2,3])</l>
+<c></c>
+<c>* Bounding Box</c>
+<l>estimate_bounding_box_3d_reconstruction (StereoModelID, 0.05, BoundingBox)</l>
+<l>BoundingBox := [-0.1, -0.1, -0.2, 0.05, 0.05, 0.0]</l>
+<l>* BoundingBox := [-0.15,-0.1,0.001,0.05,0.7,0.15]</l>
+<l>set_stereo_model_param (StereoModelID, 'bounding_box', BoundingBox)</l>
+<c></c>
+<c>*</c>
+<c>* display the 3D coord system and bounding box</c>
+<l>for Index := 0 to NumCameras-1 by 1</l>
+<l>    get_camera_setup_param (CameraSetupModelID, Index, 'pose', PoseI)</l>
+<l>    get_camera_setup_param (CameraSetupModelID, Index, 'params', CamParamI)</l>
+<l>    pose_invert (PoseI, PoseInvert)     </l>
+<l>    gen_bounding_box_image (Cross, BoundingBox, PoseInvert, CamParamI)</l>
+<c>    *</c>
+<c>    * visualize coorinate system and bounding box </c>
+<l>    select_obj (Images, ImageSel, Index+1)</l>
+<l>    dev_resize_window_fit_image (ImageSel, 0, 0, -1, -1)</l>
+<l>    dev_display (ImageSel)</l>
+<l>    disp_3d_coord_system (WindowHandle, CamParamI, PoseInvert, 0.05)   </l>
+<l>    dev_display (Cross)</l>
+<l>*     stop ()</l>
+<l>endfor</l>
+<c></c>
+<c>*</c>
+<c>* method binocular_ multi scanline will smooth a lot, but takes more time</c>
+<l>* set_stereo_model_param (StereoModelID, 'disparity_method', 'binocular_ms')</l>
+<l>* set_stereo_model_param (StereoModelID, 'binocular_ms_surface_smoothing', 50)</l>
+<l>set_stereo_model_param (StereoModelID, 'disparity_method', 'binocular')</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_mask_width', 5)</l>
+<l>set_stereo_model_param (StereoModelID, 'binocular_mask_height', 5)</l>
+<l>reconstruct_surface_stereo (Images, StereoModelID, ReconstructedModel3D)</l>
+<c>*</c>
+<c>* select the edge points only - filter image noise</c>
+<l>select_points_object_model_3d (ReconstructedModel3D, 'num_neighbors 0.005', 300, 9999, ObjectModel3DThresholded)</l>
+<l>visualize_object_model_3d (WindowHandle, ObjectModel3DThresholded, [], [], [], [], [], [], [], PoseOut)</l>
+<c></c>
+<l>stop () </l>
+<c>* clean up</c>
+<l>clear_stereo_model (StereoModelID)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="read_multi_view_stereo_images">
+<interface>
+<oo>
+<par name="Images" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="ImagePath" base_type="ctrl" dimension="0"/>
+<par name="ImagePrefix" base_type="ctrl" dimension="0"/>
+<par name="SceneIndex" base_type="ctrl" dimension="0"/>
+<par name="NumCamera" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* Read the images of the multi-view stereo setup</c>
+<c>* </c>
+<l>read_image (Images,ImagePrefix + '0')</l>
+<l>*scale_image (Image1, Images, 1.22596, -58)</l>
+<l>for Index := 1 to NumCamera - 1 by 1</l>
+<l>    read_image (Img,ImagePrefix + Index)</l>
+<l> *   scale_image (Img, ImageScaled, 1.22596, -58)</l>
+<l>    concat_obj (Images, Img, Images)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="read_multi_view_stereo_images">
+<parameters>
+<parameter id="ImagePath"/>
+<parameter id="ImagePrefix"/>
+<parameter id="Images"/>
+<parameter id="NumCamera"/>
+<parameter id="SceneIndex"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="display_multi_view_stereo_images">
+<interface>
+<io>
+<par name="Images" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="WindowHandle" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* Display the images of a multi-view stereo setup</c>
+<c>* consisting of four cameras</c>
+<c>* </c>
+<l>dev_set_window (WindowHandle)</l>
+<c>* </c>
+<l>count_obj (Images, NumImages)</l>
+<l>if (NumImages != 4)</l>
+<l>    disp_message (WindowHandle, 'Wrong number of images provided!', 'window', 12, 12, 'black', 'true')</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>* </c>
+<l>NumCols := 2</l>
+<l>select_obj (Images, Img, 1)</l>
+<l>get_image_size (Img, Width, Height)</l>
+<l>tile_images (Images, TiledImage, NumCols, 'horizontal')</l>
+<l>dev_set_part (0, 0, (2 * Height) - 1, (2 * Width) - 1)</l>
+<l>dev_display (TiledImage)</l>
+<c>* </c>
+<l>for Index := 0 to NumImages - 1 by 1</l>
+<l>    RowIdx := (Index / NumCols) + 1</l>
+<l>    ColIdx := Index % NumCols</l>
+<l>    disp_message (WindowHandle, 'Camera ' + Index, 'image', (RowIdx * Height) - 72, (ColIdx * Width) + 12, 'white', 'false')</l>
+<l>endfor</l>
+<l>return ()</l>
+<c>* </c>
+</body>
+<docu id="display_multi_view_stereo_images">
+<parameters>
+<parameter id="Images"/>
+<parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="init_camera_setup">
+<interface>
+<oc>
+<par name="CameraSetupModelID" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>PathData := 'CalibData/'</l>
+<c></c>
+<c>*3</c>
+<c></c>
+<l>read_pose(PathData + 'posS0.dat',Pose0)</l>
+<l>read_cam_par(PathData + 'cam_S0-param.dat',CamParam0)</l>
+<c>*2</c>
+<c></c>
+<l>read_pose(PathData +'posS1.dat',Pose1)</l>
+<l>read_cam_par(PathData +'cam_S1-param.dat',CamParam1)</l>
+<c>*1</c>
+<c></c>
+<l>read_pose(PathData +'posS2.dat',Pose2)</l>
+<l>read_cam_par(PathData +'cam_S2-param.dat',CamParam2)</l>
+<c>*0</c>
+<c></c>
+<l>read_pose(PathData +'posS3.dat',Pose3)</l>
+<l>read_cam_par(PathData +'cam_S3-param.dat',CamParam3)</l>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Create a camera setup model and set its parameters</c>
+<l>create_camera_setup_model (4, CameraSetupModelID)</l>
+<c>* </c>
+<c></c>
+<c>*Parameter [xtrans,ytrany,ztrans,xrot,yrot,zrot,0]</c>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 0, 'area_scan_polynomial', CamParam0, Pose0)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 1, 'area_scan_polynomial', CamParam1, Pose1)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 2, 'area_scan_polynomial', CamParam2, Pose2)</l>
+<l>set_camera_setup_cam_param (CameraSetupModelID, 3, 'area_scan_polynomial', CamParam3, Pose3)</l>
+<l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c>**Trys</c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* </c>
+<c>* Define the internal and external camera parameters</c>
+<l>* CamParam0 := [0.00850373,4008.61,-2.95892e+008,2.37315e+013,0.139749,-0.00367983,5.99965e-006,6e-006,362.715,236.769,752,480]</l>
+<l>* CamParam1 := [0.00854019,3445.26,-1.18075e+008,6.40715e+012,-0.0527818,-0.192439,5.99894e-006,6e-006,406.13,254.15,752,480]</l>
+<l>* CamParam2 := [0.00852569,3938.44,-2.75967e+008,2.27295e+013,0.231091,0.193667,6.00001e-006,6e-006,367.159,242.477,752,480]</l>
+<l>* CamParam3 := [0.00853794,3793.19,-3.49193e+008,3.9611e+013,0.0264028,0.147156,6.00169e-006,6e-006,397.066,224.671,752,480]</l>
+<c>* </c>
+<l>* Pose0 := [0.0496073,0.0280127,-0.431281,3.5466,354.117,179.758,0]</l>
+<l>* Pose1 := [0.0495484,-0.0297644,-0.429654,355.333,354.014,359.147,0]</l>
+<l>* Pose2 := [-0.0411315,-0.0294687,-0.427325,355.519,4.45356,359.876,0]</l>
+<l>* Pose3 := [-0.0414501,0.0288074,-0.429167,2.94179,4.59538,179.173,0]</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>*IIWA auf 45 cm mit winkel 10°</c>
+<c>*0</c>
+<l>* CamParam0:= [0.00773331,1635.84,-1.14728e+008,6.28377e+012,0.374646,-0.0221808,2.19058e-006,2.2e-006,1258.46,986.36,2560,1920]</l>
+<l>* Pose0 := [0.0133878,-0.0123234,-0.475275,6.24346,5.99036,358.636,0]</l>
+<c>*1</c>
+<l>* CamParam1 := [0.0075598,1558.22,-9.65061e+007,5.28054e+012,0.406553,0.148962,2.19087e-006,2.2e-006,1282.88,972.712,2560,1920]</l>
+<l>* Pose1 := [0.0100763,-0.0109718,-0.465767,353.794,5.94434,359.893,0]</l>
+<c>*2</c>
+<l>* CamParam2 := [0.00772714,1425.36,-6.85897e+007,3.48905e+012,0.205745,0.139494,2.19085e-006,2.2e-006,1300.88,942.815,2560,1920]</l>
+<l>* Pose2 := [0.00688544,-0.0067534,-0.477912,353.344,353.501,358.533,0]</l>
+<c>*3</c>
+<l>* CamParam3 := [0.00761183,1524.93,-9.31844e+007,5.14651e+012,0.132659,-0.126585,2.19078e-006,2.2e-006,1288.05,967.991,2560,1920]</l>
+<l>* Pose3 := [0.0084914,-0.00924695,-0.469512,5.95224,353.397,359.942,0]</l>
+<c></c>
+<c></c>
+</body>
+<docu id="init_camera_setup">
+<parameters>
+<parameter id="CameraSetupModelID"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="gen_bounding_box_image">
+<interface>
+<oo>
+<par name="Cross" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="BBox" base_type="ctrl" dimension="0"/>
+<par name="Pose" base_type="ctrl" dimension="0"/>
+<par name="CamParam1" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<c>* get all edge points</c>
+<l>EdgePointsX := [BBox[0], BBox[0], BBox[3], BBox[3], BBox[0], BBox[0], BBox[3], BBox[3]]</l>
+<l>EdgePointsY := [BBox[1], BBox[4], BBox[4], BBox[1], BBox[1], BBox[4], BBox[1], BBox[4]]</l>
+<l>EdgePointsZ[0:3] := BBox[2]</l>
+<l>EdgePointsZ[4:7] := BBox[5]</l>
+<c>*</c>
+<c>* Convert to pose to a transformation matrix</c>
+<l>pose_to_hom_mat3d (Pose, TransWorld2Cam)</l>
+<c>* transform the world points into camera coordiantes image</c>
+<l>affine_trans_point_3d (TransWorld2Cam, EdgePointsX, EdgePointsY, EdgePointsZ, OrigCamX, OrigCamY, OrigCamZ)</l>
+<c>* Project into image</c>
+<l>project_3d_point (OrigCamX, OrigCamY, OrigCamZ, CamParam1, Row0, Column0)</l>
+<l>gen_cross_contour_xld (Cross, Row0, Column0, 56, 0.785398)</l>
+<l>return ()</l>
+</body>
+<docu id="gen_bounding_box_image">
+<parameters>
+<parameter id="BBox"/>
+<parameter id="CamParam1"/>
+<parameter id="Cross"/>
+<parameter id="Pose"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="zoom_camera_parameters">
+<interface>
+<ic>
+<par name="CameraSetupModelID" base_type="ctrl" dimension="0"/>
+<par name="Factor" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>get_camera_setup_param (CameraSetupModelID, 'general', 'num_cameras', NumCameras)</l>
+<c>*</c>
+<l>for Index := 0 to NumCameras-1 by 1</l>
+<l>    get_camera_setup_param (CameraSetupModelID, Index, 'params', CamParamI)</l>
+<l>    NewCamParam := CamParamI</l>
+<c>    * adapt image size</c>
+<l>    NewCamParam[9] := CamParamI[9]*Factor</l>
+<l>    NewCamParam[10] := CamParamI[10]*Factor</l>
+<l>    NewCamParam[11] := CamParamI[11]*Factor</l>
+<l>    NewCamParam[12] := CamParamI[12]*Factor</l>
+<c>    * adapt pixel size</c>
+<l>    NewCamParam[7] := CamParamI[7] / Factor</l>
+<l>    NewCamParam[8] := CamParamI[8] / Factor</l>
+<l>    set_camera_setup_param (CameraSetupModelID, Index, 'params', NewCamParam)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="zoom_camera_parameters">
+<parameters>
+<parameter id="CameraSetupModelID"/>
+<parameter id="Factor"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
